@@ -1,0 +1,51 @@
+{
+  "id": "1757708",
+  "name": "back",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-back",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "5022346",
+      "name": "人数",
+      "font_class": "renshu",
+      "unicode": "e61f",
+      "unicode_decimal": 58911
+    },
+    {
+      "icon_id": "9592758",
+      "name": "人数",
+      "font_class": "renshu1",
+      "unicode": "e678",
+      "unicode_decimal": 59000
+    },
+    {
+      "icon_id": "11124968",
+      "name": "文章",
+      "font_class": "16",
+      "unicode": "e615",
+      "unicode_decimal": 58901
+    },
+    {
+      "icon_id": "4406738",
+      "name": "首页",
+      "font_class": "shouye",
+      "unicode": "e603",
+      "unicode_decimal": 58883
+    },
+    {
+      "icon_id": "5651540",
+      "name": "系统参数",
+      "font_class": "xitongcanshu",
+      "unicode": "e69a",
+      "unicode_decimal": 59034
+    },
+    {
+      "icon_id": "9454030",
+      "name": "系统监控",
+      "font_class": "xitongjiankong",
+      "unicode": "e66c",
+      "unicode_decimal": 58988
+    }
+  ]
+}

@@ -29,7 +29,7 @@
                 </div>
                 <!-- 用户头像 -->
                 <div class="user-avator">
-                    <img src="../../assets/img/img.jpg" />
+                    <img :src="avatar" />
                 </div>
                 <!-- 用户名下拉菜单 -->
                 <el-dropdown class="user-name" trigger="click" @command="handleCommand">
@@ -38,9 +38,6 @@
                         <i class="el-icon-caret-bottom"></i>
                     </span>
                     <el-dropdown-menu slot="dropdown">
-                        <a href="https://github.com/lin-xin/vue-manage-system" target="_blank">
-                            <el-dropdown-item>项目仓库</el-dropdown-item>
-                        </a>
                         <el-dropdown-item divided command="loginout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>
@@ -61,8 +58,11 @@ export default {
     },
     computed: {
         username() {
-            let username = localStorage.getItem('ms_username');
-            return username ? username : this.name;
+            let username = this.$store.getters.nickname;
+            return username;
+        },
+        avatar(){
+          return this.$store.getters.avatar;
         }
     },
     methods: {
