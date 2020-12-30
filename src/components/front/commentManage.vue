@@ -20,38 +20,13 @@
                     <el-option v-for="item in tags" :key="item.id" :label="item.categoryName"
                                :value="item.id"></el-option>
                 </el-select>
-                <el-input v-model="query.nickname" placeholder="用户名" class="handle-input mr10"></el-input>
-                <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
             </div>
             <el-table
-                    :data="tableDatas"
+                    :data="tableData"
                     class="table"
                     ref="multipleTable"
                     header-cell-class-name="table-header"
             >
-                <el-table-column type="expand">
-                    <template slot-scope="props">
-                        <el-form label-position="left" block class="demo-table-expand">
-                            <el-form-item label="文章名">
-                                <div>{{ props.row.title }}</div>
-                            </el-form-item>
-                            <el-form-item label="文章摘要">
-                                <p class="mesummary">{{ props.row.description}}</p>
-                            </el-form-item>
-                            <el-form-item label="标签">
-                                <el-tag class="metag" v-for="s in props.row.categorys" :key="s.id" type="info">
-                                    {{s.categoryName}}
-                                </el-tag>
-                            </el-form-item>
-                            <el-form-item label="阅读数">
-                                <span>{{ props.row.readNum}}</span>
-                            </el-form-item>
-                            <el-form-item label="评论数">
-                                <span>{{ props.row.commentNum}}</span>
-                            </el-form-item>
-                        </el-form>
-                    </template>
-                </el-table-column>
                 <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
                 <el-table-column label="文章名">
                     <template slot-scope="scope">
@@ -59,17 +34,12 @@
                     </template>
                 </el-table-column>
                 <el-table-column label="作者" align="center">
-                    <template slot-scope="scope">{{scope.row.nickname}}</template>
-                </el-table-column>
-                <el-table-column label="状态" align="center">
                     <template slot-scope="scope">
-                        <el-tag
-                                :type="scope.row.publish===1?'success':(scope.row.publish==0?'danger':'')"
-                        >{{scope.row.publish===1?'已审核':(scope.row.publish==0?'未审核':'')}}
-                        </el-tag>
+                        {{scope.row.nickname}}
                     </template>
                 </el-table-column>
-
+                <el-table-column label="评论数" align="center" prop="commentNum">
+                </el-table-column>
                 <el-table-column label="创建时间">
                     <template slot-scope="scope">
                         {{scope.row.updateTime | convertDatezhun }}
@@ -81,30 +51,10 @@
                                 type="text"
                                 icon="el-icon-edit"
                                 @click="handleEdit(scope.row)"
-                        >审核内容
-                        </el-button>
-                        <el-button
-                                type="text"
-                                icon="el-icon-delete"
-                                class="red"
-                                @click="handleDelete(scope.$index,scope.row)"
-                        >删除
+                        >管理评论
                         </el-button>
                     </template>
                 </el-table-column>
-                <el-table-column label="推荐" width="180" align="center">
-                    <template slot-scope="scope">
-                        <el-switch
-                                v-model="scope.row.recommend"
-                                @change="mychange(scope.row)"
-                                :active-value=1
-                                :inactive-value=0
-                                active-color="#13ce66"
-                                inactive-color="#ff4949">
-                        </el-switch>
-                    </template>
-                </el-table-column>
-
             </el-table>
             <div class="pagination">
                 <el-pagination
@@ -119,21 +69,72 @@
         </div>
 
         <!-- 编辑弹出框 -->
-        <el-dialog title="文章内容" :visible.sync="editVisible" width="60%">
-            <div v-html="content" class="markdown-body">
+        <el-dialog title="所有评论" :visible.sync="editVisible" width="60%">
+            <el-table
+                    :data="commentData"
+                    style="width: 100%"
+                    border
+                    row-key="id"
+                    :tree-props="{children: 'reply'}">
+                <el-table-column
+                        prop="fromName"
+                        label="评论者"
+                        align="center"
+                        width="180">
+                    <template slot-scope="scope">
+                        <span>
+                            {{scope.row.fromName }}
+                        </span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        label="被评论对象"
+                        width="180" align="center">
+                    <template slot-scope="scope">
+                        <div>
+                            {{getToName(scope.row)}}
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="content"
+                        label="评论内容" align="center">
+                </el-table-column>
+                <el-table-column
+                        label="时间" align="center">
+                    <template slot-scope="scope">
+                        {{scope.row.date | convertDatezhun }}
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        label="操作" align="center">
+                    <template slot-scope="scope">
+                        <el-button
+                                type="text"
+                                icon="el-icon-delete"
+                                class="red"
+                                @click="handleDeleteComment(scope.$index,scope.row)"
+                        >删除
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pagination">
+                <el-pagination
+                        background
+                        layout="total, prev, pager, next"
+                        :current-page="queryComment.pageIndex"
+                        :page-size="queryComment.pageSize"
+                        :total="pageTotalCOmment"
+                        @current-change="handlePageChangeCOmment"
+                ></el-pagination>
             </div>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="editVisible = false">取 消</el-button>
-                <el-button type="primary" @click="saveEdit">审核通过</el-button>
-            </span>
         </el-dialog>
     </div>
 </template>
 
 <script>
-    import {getAll, recommend, deleteArticle, publish} from '@/api/article'
-    import 'github-markdown-css/github-markdown.css';
-    import marked from 'marked'
+    import {getArticle, commentView, deleteComment} from "../../api/comment";
     import {getCategory, tagByCategory} from '@/api/category';
 
     export default {
@@ -146,11 +147,18 @@
                     pageSize: 5,
                     id: 0
                 },
-                tableDatas: [],
+                queryComment: {
+                    pageNum: 1,
+                    pageSize: 5,
+                    id: 0
+                },
+                tableData: [],
                 multipleSelection: [],
                 delList: [],
+                commentData: [],
                 editVisible: false,
                 pageTotal: 0,
+                pageTotalCOmment: 0,
                 form: {},
                 idx: -1,
                 id: -1,
@@ -159,15 +167,21 @@
                 categoryId: '',
                 tags: [],
                 tagId: '',
-                clearable: true,
-                publishId: ''
+                clearable: true
             };
         },
         created() {
-            this.getCategory();
             this.getData();
+            this.getCategory();
         },
         methods: {
+            getToName(item) {
+                if (item.reply && item.fromId == item.toId) {
+                    return '文章'
+                } else {
+                    return item.toName;
+                }
+            },
             getCategory() {
                 getCategory().then(res => {
                     if (res.data != null && res.data.status == 0) {
@@ -201,42 +215,36 @@
                 }
 
             },
-            mychange(item) {
-                if (item.recommend == 0) {
-                    recommend(item.id, 0).then(res => {
-                        if (res.data.status == 0) {
-
-                        }
-                    })
-                } else if (item.recommend == 1) {
-                    recommend(item.id, 1).then(res => {
-                        if (res.data.status == 0) {
-                        }
-                    })
-                }
-            },
             getData() {
-                getAll(this.query).then(res => {
-                    this.tableDatas = res.data.data.list;
+                getArticle(this.query).then(res => {
+                    this.tableData = res.data.data.list;
                     this.pageTotal = res.data.data.totalCount;
                 });
             },
-            // 触发搜索按钮
-            handleSearch() {
-                this.$set(this.query, 'pageNum', 1);
-                this.getData();
-            },
-            // 删除操作
-            handleDelete(index, item) {
+            // 删除评论
+            handleDeleteComment(index, item) {
                 // 二次确认删除
                 this.$confirm('确定要删除吗？', '提示', {
                     type: 'warning'
                 }).then(() => {
-                    deleteArticle(item.id).then(res => {
+                    deleteComment(item.id).then(res => {
                         if (res.data.status == 0) {
-                            this.pageTotal = this.pageTotal - 1;
+                            if (item.reply==undefined) {
+                                this.commentData.forEach((i,ind) => {
+                                    if (i.reply.length>0) {
+                                        i.reply.forEach((ii, index) => {
+                                            if (ii.id=item.id){
+                                                this.commentData[ind].reply.splice(index, 1);
+                                            }
+                                        })
+                                    }
+                                })
+                            } else {
+                                this.pageTotalCOmment = this.pageTotalCOmment - 1;
+                                this.commentData.splice(index, 1);
+                            }
                             this.$message.success('删除成功');
-                            this.tableDatas.splice(index, 1);
+                            this.$forceUpdate();
                         }
                     })
                 }).catch(() => {
@@ -252,46 +260,28 @@
                 this.$message.error(`删除了${str}`);
                 this.multipleSelection = [];
             },
-            // 审核内容
+            // 管理评论
             handleEdit(item) {
-                this.publishId = item.id;
-                this.content = marked(item.content);
+                this.queryComment.id = item.id;
                 this.editVisible = true;
+                this.getComments(this.queryComment);
             },
-            // 保存
-            saveEdit() {
-                let flag = true;
-                this.tableDatas.forEach(item => {
-                    if (item.id == this.publishId && item.publish == 1) {
-                        this.$message({
-                            message: '该文章已审核',
-                            type: 'warning'
-                        })
-                        flag = false;
-                        this.editVisible = false;
+            getComments(query) {
+                commentView(query).then(res => {
+                    if (res.data.status == 0) {
+                        this.commentData = res.data.data.list;
+                        this.pageTotalCOmment = res.data.data.totalCount;
                     }
                 })
-                if (flag) {
-                    publish(this.publishId).then(res => {
-                        if (res.data.status == 0) {
-                            this.$message({
-                                message: '审核成功',
-                                type: 'success'
-                            })
-                            this.tableDatas.forEach((item, index) => {
-                                if (item.id == this.publishId) {
-                                    this.tableDatas[index].publish = 1;
-                                }
-                            })
-                            this.editVisible = false;
-                        }
-                    })
-                }
             },
             // 分页导航
             handlePageChange(val) {
                 this.$set(this.query, 'pageNum', val);
                 this.getData();
+            },
+            handlePageChangeCOmment(val) {
+                this.queryComment.pageNum = val;
+                this.getComments(this.queryComment);
             }
         }
     };

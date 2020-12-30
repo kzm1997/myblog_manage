@@ -32,8 +32,23 @@ export default new Router({
                 },
                 {
                     path: 'commentfront',
-                    component:()=>import('../components/front/comment'),
+                    component:()=>import('../components/front/commentManage'),
                     meta: {title: '前台评论管理'}
+                },
+                {
+                    path:'backuser',
+                    component:()=>import('../components/back/user'),
+                    meta: {time:'后台用户管理'}
+                },
+                {
+                    path:'backrole',
+                    component:()=>import('../components/back/role'),
+                    meta: {time:'后台角色管理'}
+                },
+                {
+                    path:'backsys',
+                    component:()=>import('../components/back/sys'),
+                    meta: {time:'后台系统运营'}
                 },
                 {
                   path:'categoryfront',

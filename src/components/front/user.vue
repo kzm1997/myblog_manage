@@ -9,14 +9,13 @@
         </div>
         <div class="container">
             <div class="handle-box">
-                <el-select v-model="query.address" placeholder="用户状态" class="handle-select mr10">
-                    <el-option key="1" label="禁用" value="广东省"></el-option>
-                    <el-option key="2" label="正常" value="湖南省"></el-option>
+                <el-select v-model="query.status" placeholder="用户状态" class="handle-select mr10">
+                    <el-option key="1" label="禁用" value=1></el-option>
+                    <el-option key="2" label="正常" value=0></el-option>
                 </el-select>
-                <el-input v-model="query.name" placeholder="用户名" class="handle-input mr10"></el-input>
+                <el-input v-model="query.nickname" placeholder="用户名" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
             </div>
-            <el-button type="primary" icon="el-icon-plus" class="myadd" @click="drawer=true">新增用户</el-button>
             <el-table
                     :data="tableData"
                     border
@@ -26,37 +25,35 @@
                     @selection-change="handleSelectionChange"
             >
                 <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
-                <el-table-column prop="name" label="用户名"></el-table-column>
-                <el-table-column label="邮箱">
-                    <template slot-scope="scope">￥{{scope.row.money}}</template>
-                </el-table-column>
+                <el-table-column prop="nickname" label="用户名" align="center"></el-table-column>
+                <el-table-column label="邮箱" prop="email" align="center"></el-table-column>
                 <el-table-column label="头像(查看大图)" align="center">
                     <template slot-scope="scope">
                         <el-image
                                 class="table-td-thumb"
-                                :src="scope.row.thumb"
-                                :preview-src-list="[scope.row.thumb]"
+                                :src="scope.row.avatar"
+                                :preview-src-list="[scope.row.avatar]"
                         ></el-image>
                     </template>
                 </el-table-column>
-                <el-table-column label="文章数">
-                    <template slot-scope="scope">￥{{scope.row.money}}</template>
+                <el-table-column label="文章数" align="center">
+                    <template slot-scope="scope">{{scope.row.articles}}</template>
                 </el-table-column>
                 <el-table-column label="状态" align="center">
                     <template slot-scope="scope">
-                        <el-tag
-                                :type="scope.row.state==='成功'?'success':(scope.row.state==='失败'?'danger':'')"
-                        >{{scope.row.state}}
+                        <el-tag :type="scope.row.status===0?'success':(scope.row.status===1?'danger':'')"
+                        >{{getStatus(scope.row.status)}}
                         </el-tag>
                     </template>
                 </el-table-column>
 
-                <el-table-column prop="date" label="注册时间"></el-table-column>
+                <el-table-column prop="createTime" label="注册时间" align="center"></el-table-column>
                 <el-table-column label="禁用操作" width="180" align="center">
                     <template slot-scope="scope">
                         <el-switch
-                                v-model="value"
+                                v-model="scope.row.switch"
                                 active-color="#13ce66"
+                                @change="mychange(scope.row)"
                                 inactive-color="#ff4949">
                         </el-switch>
                     </template>
@@ -73,64 +70,80 @@
                 ></el-pagination>
             </div>
         </div>
-        <el-drawer
-                title="我是标题"
-                :visible.sync="drawer"
-                :with-header="false">
-            <span>我来啦!</span>
-        </el-drawer>
-        <!-- 编辑弹出框 -->
-  <!--      <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="70px">
-                <el-form-item label="用户名">
-                    <el-input v-model="form.name"></el-input>
-                </el-form-item>
-                <el-form-item label="地址">
-                    <el-input v-model="form.address"></el-input>
-                </el-form-item>
-            </el-form>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="editVisible = false">取 消</el-button>
-                <el-button type="primary" @click="saveEdit">确 定</el-button>
-            </span>
-        </el-dialog>-->
     </div>
 </template>
 
 <script>
-    import {getUser} from '@/api/user';
+    import {getUser, forbid} from '@/api/user';
 
     export default {
         name: 'basetable',
         data() {
             return {
-                drawer: false,
                 query: {
-                    address: '',
-                    name: '',
+                    nickname: '',
                     pageNum: 1,
-                    pageSize: 10
+                    pageSize: 5
+                },
+                form: {
+                    nickname: '',
                 },
                 tableData: [],
                 multipleSelection: [],
                 delList: [],
-                editVisible: false,
                 pageTotal: 0,
-                form: {},
                 idx: -1,
-                id: -1
+                id: -1,
             };
         },
         created() {
-            // this.getData();
+            this.getData();
         },
         methods: {
-            // 获取 easy-mock 的模拟数据
+            getStatus(status) {
+                if (status === 0) {
+                    return '正常'
+                } else if (status === 1) {
+                    return '锁定';
+                }
+            },
+            mychange(item) {
+                if (item.status === 0) {
+                    forbid(item.id, 1).then(res => {
+                        if (res.data.status == 0) {
+                            this.tableData.forEach((i, index) => {
+                                if (i.id == item.id) {
+                                    this.tableData[index].status = 1;
+                                    this.$forceUpdate();
+                                }
+                            })
+                        }
+                    })
+                } else if (item.status === 1) {
+                    forbid(item.id, 0).then(res => {
+                        if (res.data.status == 0) {
+                            this.tableData.forEach((i, index) => {
+                                if (i.id == item.id) {
+                                    this.tableData[index].status = 0;
+                                    this.$forceUpdate();
+                                }
+                            })
+                        }
+                    })
+                }
+            },
             getData() {
                 getUser(this.query).then(res => {
-                    console.log(res);
-                    this.tableData = res.list;
-                    this.pageTotal = res.pageTotal || 50;
+                    this.tableData = res.data.data.list;
+                    this.tableData.forEach(item => {
+                        if (item.status == 0) {
+                            item.switch = false;
+                        } else if (item.status == 1) {
+                            item.switch = true;
+                        }
+                    })
+                    this.pageTotal = res.data.data.totalCount;
+
                 });
             },
             // 触发搜索按钮
@@ -171,30 +184,45 @@
                 this.form = row;
                 this.editVisible = true;
             },
-            // 保存编辑
-            saveEdit() {
-                this.editVisible = false;
-                this.$message.success(`修改第 ${this.idx + 1} 行成功`);
-                this.$set(this.tableData, this.idx, this.form);
-            },
             // 分页导航
             handlePageChange(val) {
                 this.$set(this.query, 'pageNum', val);
                 this.getData();
             },
-            handleClose(done) {
-                this.$confirm('确认关闭？')
-                    .then(_ => {
-                        done();
-                    })
-                    .catch(_ => {
-                    });
-            }
+
         }
     };
 </script>
 
-<style scoped>
+<style lang="scss">
+    .myheader {
+        margin-top: 10px;
+        padding: 10px;
+        margin-bottom: 30px;
+        border-bottom: 1px solid rgba(140, 147, 157, 0.19);
+    }
+
+    .myform {
+        margin-left: 10px;
+        text-align: left;
+
+        input {
+            margin-bottom: 15px;
+        }
+
+        width: 80%;
+    }
+
+    .el-drawer__wrapper {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        overflow: hidden;
+        margin: 0;
+    }
+
     .handle-box {
         margin-bottom: 20px;
     }
@@ -231,4 +259,5 @@
         width: 40px;
         height: 40px;
     }
+
 </style>

@@ -7,8 +7,7 @@
                         <el-avatar :size="70"
                                    src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
                         <div class="user-info-cont">
-                            <div class="user-info-name">名字</div>
-                            <div>角色</div>
+                            <div class="user-info-name">{{nickname}}</div>
                         </div>
                     </div>
                 </el-card>
@@ -65,7 +64,7 @@
     import histogram from 'v-charts/lib/histogram.common.min';
     import {getIndex} from '@/api/user';
     import moment from 'moment';
-
+    import {get} from '../../utils/localstorage'
     moment.locale('zh-cn');
     export default {
         name: 'dashboard',
@@ -90,7 +89,11 @@
         components: {
             histogram
         },
-        computed: {},
+        computed: {
+            nickname(){
+              return this.$store.getters.nickname;
+            }
+        },
         mounted() {
             this.getData();
         },
@@ -103,6 +106,7 @@
                         this.articleCount = res.data.data.articleCount;
                         for (let i = 6; i >= 0; i--) {
                             let time = moment().subtract(i, 'days').format('MM-DD');
+
                             let contain = false;
                             let contain2 = false;
                             let p = new Object();

@@ -8,7 +8,7 @@ moment.locale('zh-cn')
 
 
 let httpRequest = axios.create({
-    baseURL: 'http://localhost:8097/kblog',
+    baseURL: 'http://localhost:8098/kblog',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json;charset=utf-8'

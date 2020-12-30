@@ -90,24 +90,24 @@
                         title: '后台管理',
                         subs: [
                             {
-                                index: 'user',
+                                index: 'backuser',
                                 title: '用户管理'
                             },
                             {
-                                index: 'role',
+                                index: 'backrole',
                                 title: '角色管理',
                             },
-                            {
+                         /*   {
                                 index: 'menu',
                                 title: '菜单管理'
-                            },
+                            },*/
                             {
-                                index:'sys',
-                                title: '系统营销'
+                                index:'backsys',
+                                title: '系统运营'
                             }
                         ]
                     },
-                    {
+                  /*  {
                         icon: 'el-icon-lx-warn',
                         index: '7',
                         title: '错误处理',
@@ -121,7 +121,7 @@
                                 title: '404页面'
                             }
                         ]
-                    }
+                    }*/
                 ]
             };
         },
